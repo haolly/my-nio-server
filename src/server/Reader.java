@@ -1,8 +1,7 @@
 package server;
 
 import event.Event;
-
-import java.nio.channels.SocketChannel;
+import handler.UserSession;
 
 /**
  * Created by liuhao on 15-5-31.
@@ -20,8 +19,14 @@ public class Reader {
         }
     }
 
-    public void addEvent(Event event, SocketChannel client) {
-        int distribute = client.socket().hashCode() % workerNum;
+    public void addEvent(Event event, UserSession session) {
+        int distribute = session.inMsgHandleDistributeKey;
         worker[distribute].addEvent(event);
+    }
+
+    public void shutDown() {
+        for(ReaderThread reader: worker) {
+            reader.shutDown();
+        }
     }
 }

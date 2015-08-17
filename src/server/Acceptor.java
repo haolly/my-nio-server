@@ -1,14 +1,12 @@
 package server;
 
-import event.sys.ReadEvent;
-import event.sys.WriteEvent;
-import handler.ReadEventHandler;
-import handler.SocketAttachment;
-import handler.WriteEventHandler;
+import event.DataInEvent;
+import handler.UserSession;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.StandardSocketOptions;
+import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -32,13 +30,11 @@ public class Acceptor extends Thread{
             readSelector = Selector.open();
 
             serverSocketChannel = ServerSocketChannel.open();
-            serverSocketChannel.bind(new InetSocketAddress("127.0.0.1", 6677));
+            serverSocketChannel.bind(new InetSocketAddress("127.0.0.1", ServerConfig.SERVER_PORT));
             serverSocketChannel.configureBlocking(false);
 
             serverSocketChannel.register(acceptSelector, SelectionKey.OP_ACCEPT);
             isRunning = true;
-
-            addEventListener();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -46,10 +42,7 @@ public class Acceptor extends Thread{
 
     }
 
-    private void addEventListener() {
-        Dispatcher.getInstance().addEventHandler(ReadEvent.class, new ReadEventHandler());
-        Dispatcher.getInstance().addEventHandler(WriteEvent.class, new WriteEventHandler());
-    }
+
 
     @Override
     public void run() {
@@ -66,7 +59,8 @@ public class Acceptor extends Thread{
                             SocketChannel socketChannel = serverSocket.accept();
                             socketChannel.configureBlocking(false);
                             socketChannel.setOption(StandardSocketOptions.TCP_NODELAY, true);
-                            socketChannel.register(readSelector, SelectionKey.OP_READ, new SocketAttachment());
+                            socketChannel.register(readSelector, SelectionKey.OP_READ, new UserSession(socketChannel));
+                            ConnectionManager.instance.addConnection(socketChannel);
                         }
                     }
                 }
@@ -77,13 +71,14 @@ public class Acceptor extends Thread{
                         SelectionKey key = iterator.next();
                         iterator.remove();
                         SocketChannel client = (SocketChannel) key.channel();
-                        // todo, handle event will be blocked?
+                        UserSession session = (UserSession) key.attachment();
+                        // handle event will be blocked? no
                         if(key.isWritable()) {
-                            Dispatcher.getInstance().addEvent(new WriteEvent(key), client);
                             // reset to read only
+
                             key.interestOps(SelectionKey.OP_READ);
                         } else if(key.isReadable()) {
-                            Dispatcher.getInstance().addEvent(new ReadEvent(key), client);
+                            handleRead(client, session);
                         }
                     }
                 }
@@ -92,5 +87,59 @@ public class Acceptor extends Thread{
             }
         }
 
+    }
+
+    private void handleRead(SocketChannel socketChannel, UserSession session) {
+        int count = 0;
+        try {
+            count = socketChannel.read(session.inMsg);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if(count == -1) {
+            //end of stream
+            try {
+                socketChannel.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        // not enough for a packet
+        if (count <4) {
+            return ;
+        }
+        session.inMsg.flip();
+
+        int dataLen = session.inMsg.getInt();
+        if(session.inMsg.remaining() < dataLen) {
+            session.inMsg.position(session.inMsg.limit());
+            session.inMsg.limit(session.inMsg.capacity());
+            return ;
+        }
+
+        while(session.inMsg.remaining() >= dataLen) {
+            byte[] data = new byte[dataLen];
+            session.inMsg.get(data);
+            Dispatcher.getInstance().addReadEvent(new DataInEvent(ByteBuffer.wrap(data), session), session);
+
+            // not enough for a packet
+            if(session.inMsg.remaining() < UserSession.HEAD_SIZE_BYTE) {
+                session.inMsg.compact();
+                return ;
+            }
+            dataLen = session.inMsg.getInt();
+        }
+        //not received full content, rollback to the head_size_byte
+        session.inMsg.position(session.inMsg.position()-4);
+        session.inMsg.compact();
+    }
+
+    public void shutDown() {
+        isRunning = false;
+        try {
+            serverSocketChannel.close();
+        } catch (IOException e) {
+
+        }
     }
 }

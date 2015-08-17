@@ -1,49 +1,42 @@
 package handler;
 
-import event.Event;
-import event.domain.DataInEvent;
+import domin.User;
+import event.*;
+import event.DataInEvent;
+import server.Dispatcher;
 
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.channels.SelectionKey;
-import java.nio.charset.CharacterCodingException;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
 
 /**
- * Created by liuhao on 15-5-17.
- * 这里应该是具体应用的逻辑处理，可以使用多个线程来处理数据,需要保证每个用户的消息处理是FIFO
- * todo
+ * Created by liuhao on 15/8/15.
  */
-public class DataInEventHandler implements EventHandler {
-    public static final int WORKER_THREAD_NUM = 5;
-
-
+public class DataInEventHandler implements EventHandler{
     @Override
     public void handleEvent(Event e) {
         if(e instanceof DataInEvent) {
             DataInEvent event = (DataInEvent)e;
-            ByteBuffer data = event.buffer;
-            SelectionKey key = event.key;
-            //todo, default behavior
-            CharsetDecoder decoder = Charset.forName("UTF-8").newDecoder();
-            try {
-                CharBuffer charBuffer = decoder.decode(data);
-                charBuffer.flip();
-                Writer writer = new OutputStreamWriter(System.out);
-                if(charBuffer.hasRemaining()) {
-                    writer.write(charBuffer.toString());
-                }
-                // prepare for write to client
-                key.interestOps(SelectionKey.OP_WRITE);
-            } catch (CharacterCodingException e1) {
-                //decode error
-            } catch (IOException e1) {
-                // write error
+            UserSession session = event.session;
+            ByteBuffer content = event.content;
+            int eventType = content.getInt();
+            User user = session.getUser();
+            switch (eventType) {
+                case UserEventType.login:
+                    Dispatcher.getInstance().addReadEvent(new LoginEvent(content), session);
+                    break;
+                case UserEventType.register:
+                    if (user == null) {
+                        Dispatcher.getInstance().addReadEvent(new RegisterEvent(content), session);
+                    }
+                    break;
+                case UserEventType.logout:
+                    break;
+                case UserEventType.shutDownServer:
+                    break;
             }
         }
+    }
+
+    private boolean checkCouldRegister(String name) {
+        return true;
     }
 }
