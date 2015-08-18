@@ -1,8 +1,7 @@
 package server;
 
-import event.Event;
 import event.DataInEvent;
-import event.ResponseMessage;
+import event.Event;
 import handler.DataInEventHandler;
 import handler.EventHandler;
 import handler.UserSession;
@@ -53,8 +52,8 @@ public class Dispatcher {
     }
 
 
-    public void addWriteEvent(ResponseMessage response, UserSession session) {
-        this.writer.addResponse(response, session);
+    public void addWriteEvent(UserSession session) {
+        this.writer.addResponse(session);
     }
 
     public void addReadEvent(Event event, UserSession session) {

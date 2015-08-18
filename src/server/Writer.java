@@ -1,6 +1,5 @@
 package server;
 
-import event.ResponseMessage;
 import handler.UserSession;
 
 /**
@@ -17,7 +16,7 @@ public class Writer {
         }
     }
 
-    public void addResponse(ResponseMessage response, UserSession session) {
+    public void addResponse(UserSession session) {
         int distribute = session.inMsgHandleDistributeKey;
         worker[distribute].addResponse(session);
     }

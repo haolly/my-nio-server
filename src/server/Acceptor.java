@@ -75,7 +75,7 @@ public class Acceptor extends Thread{
                         // handle event will be blocked? no
                         if(key.isWritable()) {
                             // reset to read only
-
+                            Dispatcher.getInstance().addWriteEvent(session);
                             key.interestOps(SelectionKey.OP_READ);
                         } else if(key.isReadable()) {
                             handleRead(client, session);

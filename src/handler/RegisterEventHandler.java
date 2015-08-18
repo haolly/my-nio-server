@@ -4,6 +4,8 @@ import domin.User;
 import domin.UserManager;
 import event.Event;
 import event.RegisterEvent;
+import event.ResponseMessage;
+import server.MsgSender;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,7 +33,8 @@ public class RegisterEventHandler implements EventHandler{
             else {
                 response.put("res", -1);
             }
-
+            ResponseMessage responseMsg = new ResponseMessage(response);
+            MsgSender.sendResponse(responseMsg);
         }
     }
 }

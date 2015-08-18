@@ -1,7 +1,11 @@
 package server;
 
+import domin.User;
 import handler.UserSession;
 
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingDeque;
 
@@ -19,6 +23,7 @@ public class WriterThread extends Thread{
         }
         try {
             UserSession session = queue.take();
+            doWrite(session);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -34,6 +39,34 @@ public class WriterThread extends Thread{
             queue.put(session);
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void doWrite(UserSession session) {
+        SocketChannel clientChannel = session.getChannel();
+        User user = session.getUser();
+        if(user == null) {
+            return ;
+        }
+        if (!clientChannel.isConnected()) {
+            return;
+        }
+        ByteBuffer out = session.getOutMsge();
+        if(out == null) {
+            return ;
+        }
+        try {
+            int needToWrite = out.remaining();
+            while (needToWrite > 0) {
+                int num = clientChannel.write(out);
+                needToWrite -= num;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if(session.isHavingDataToWrite()) {
+            addResponse(session);
         }
     }
 }
