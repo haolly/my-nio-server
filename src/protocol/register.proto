@@ -1,0 +1,21 @@
+package my_nio_server;
+
+option java_package = "protocol";
+option java_outer_classname = "RegisterMsg";
+
+message Register {
+	required string name = 1;
+	required string password = 2;
+	optional string email = 3;
+}
+
+message RegisterResult {
+	enum ResultCode {
+		INVALIDE_NAME_OR_PASSWD = 0;
+		ALREADY_IN_USE = 1;
+		OK = 2;
+	}
+	
+	required ResultCode res = 1;
+}
+

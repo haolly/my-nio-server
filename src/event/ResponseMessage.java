@@ -1,28 +1,27 @@
 package event;
 
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
-import java.util.HashMap;
+import handler.UserSession;
+
 import java.util.List;
-import java.util.Map;
 
 /**
  * Created by liuhao on 15/8/17.
  */
 public class ResponseMessage {
-    private SocketChannel sender;
-    private List<SocketChannel> receivers;
-    private Map<Object, Object> responseData = new HashMap<>();
-    private ByteBuffer msg;
+    private List<UserSession> receivers;
+    private byte[] bytes;
 
-    public ResponseMessage(Map<Object, Object> data) {
-        this.responseData = data;
-        // todo, convert response data to msg use the specific protocol
-
+    public ResponseMessage(byte[] bytes, List<UserSession> receivers) {
+        this.bytes = bytes;
+        this.receivers = receivers;
     }
 
-    public ByteBuffer getMsg() {
-        return msg;
+    public byte[] getMsg() {
+        return bytes;
+    }
+
+    public List<UserSession> getReceivers() {
+        return this.receivers;
     }
 
 }

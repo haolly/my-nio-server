@@ -1,4 +1,5 @@
 add slf4j using logback
+add database support
 add uncaughtExceptionHandler
 add background check thread
 add admin extension

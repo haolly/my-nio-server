@@ -120,6 +120,7 @@ public class Acceptor extends Thread{
         while(session.inMsg.remaining() >= dataLen) {
             byte[] data = new byte[dataLen];
             session.inMsg.get(data);
+            //when wrap, the content is ready for read
             Dispatcher.getInstance().addReadEvent(new DataInEvent(ByteBuffer.wrap(data), session), session);
 
             // not enough for a packet

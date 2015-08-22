@@ -1,9 +1,6 @@
 package server;
 
-import event.Event;
-import event.LoginEvent;
-import event.DataInEvent;
-import event.RegisterEvent;
+import event.*;
 import handler.EventHandler;
 
 import java.util.concurrent.BlockingQueue;
@@ -37,6 +34,9 @@ public class ReaderThread extends Thread{
             handler.handleEvent(event);
         } else if (event instanceof RegisterEvent) {
             handler = Dispatcher.getInstance().getEventHandler(RegisterEvent.class);
+            handler.handleEvent(event);
+        } else if (event instanceof AddFriendEvent) {
+            handler = Dispatcher.getInstance().getEventHandler(AddFriendEvent.class);
             handler.handleEvent(event);
         }
     }

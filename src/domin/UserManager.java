@@ -11,7 +11,7 @@ public class UserManager {
     private UserManager() {}
     private static UserManager instance = new UserManager();
 
-    public UserManager getInstance() {
+    public static UserManager getInstance() {
         return instance;
     }
 
@@ -24,6 +24,7 @@ public class UserManager {
         return true;
     }
 
+    // todo, add user info to database;
     public boolean addUser(User newUser) {
         if (!allUser.containsKey(newUser.getUserName())) {
             allUser.put(newUser.getUserName(), newUser);

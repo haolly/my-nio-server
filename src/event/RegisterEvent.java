@@ -1,8 +1,9 @@
 package event;
 
+import com.google.protobuf.InvalidProtocolBufferException;
 import handler.UserSession;
+import protocol.RegisterMsg;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 /**
@@ -11,24 +12,23 @@ import java.nio.ByteBuffer;
 public class RegisterEvent implements Event{
     public String name;
     public String passwd;
+    public String email;
     public UserSession session;
     public RegisterEvent(ByteBuffer data, UserSession session) {
         this.session =session;
-        int nameLen = data.getInt();
-        byte[] byteName = new byte[nameLen];
-        data.get(byteName);
+        byte[] bytes = new byte[data.remaining()];
+        data.get(bytes);
         try {
-            name = new String(byteName,"utf-8");
-        } catch (UnsupportedEncodingException e) {
+            RegisterMsg.Register register = RegisterMsg.Register.newBuilder().mergeFrom(bytes).build();
+            this.name = register.getName();
+            this.passwd = register.getPassword();
+            if(register.hasEmail()) {
+                this.email = register.getEmail();
+            }
+
+        } catch (InvalidProtocolBufferException e) {
             e.printStackTrace();
         }
-        int passwdLen = data.getInt();
-        byte[] bytePasswd = new byte[passwdLen];
-        data.get(bytePasswd);
-        try {
-            passwd = new String(bytePasswd, "utf-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+
     }
 }

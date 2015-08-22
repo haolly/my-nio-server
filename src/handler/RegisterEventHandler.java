@@ -5,10 +5,11 @@ import domin.UserManager;
 import event.Event;
 import event.RegisterEvent;
 import event.ResponseMessage;
+import protocol.RegisterMsg;
 import server.MsgSender;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by liuhao on 15/8/17.
@@ -21,19 +22,24 @@ public class RegisterEventHandler implements EventHandler{
             UserSession session = event.session;
             User u = session.getUser();
             if(u != null) {
+                //todo, log info
                 return ;
             }
             String regName = event.name;
-            Map<Object, Object> response = new HashMap<>();
+            String passwd = event.passwd;
+            RegisterMsg.RegisterResult.Builder builder = RegisterMsg.RegisterResult.newBuilder();
             if(UserManager.validateNewUserName(regName)) {
-                response.put("res", 1);
                 u = User.createUser(regName, u.getPasswd());
                 session.setUser(u);
+                builder.setRes(RegisterMsg.RegisterResult.ResultCode.OK);
+                UserManager.getInstance().addUser(u);
             }
             else {
-                response.put("res", -1);
+                builder.setRes(RegisterMsg.RegisterResult.ResultCode.ALREADY_IN_USE);
             }
-            ResponseMessage responseMsg = new ResponseMessage(response);
+            List<UserSession> receivers = new ArrayList<>();
+            receivers.add(session);
+            ResponseMessage responseMsg = new ResponseMessage(builder.build().toByteArray(), receivers);
             MsgSender.sendResponse(responseMsg);
         }
     }

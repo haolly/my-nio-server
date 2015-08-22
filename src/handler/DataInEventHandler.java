@@ -17,15 +17,15 @@ public class DataInEventHandler implements EventHandler{
             DataInEvent event = (DataInEvent)e;
             UserSession session = event.session;
             ByteBuffer content = event.content;
-            int eventType = content.getInt();
+            int eventType = event.getType();
             User user = session.getUser();
             switch (eventType) {
                 case UserEventType.login:
-                    Dispatcher.getInstance().addReadEvent(new LoginEvent(content), session);
+                    Dispatcher.getInstance().addReadEvent(new LoginEvent(content, session), session);
                     break;
                 case UserEventType.register:
                     if (user == null) {
-                        Dispatcher.getInstance().addReadEvent(new RegisterEvent(content), session);
+                        Dispatcher.getInstance().addReadEvent(new RegisterEvent(content, session), session);
                     }
                     break;
                 case UserEventType.logout:
