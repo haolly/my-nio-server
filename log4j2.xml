@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--status表示logger internal本身的打印等级-->
+<Configuration status="WARN">
+    <Properties>
+        <Property name="log-path">log/log.log</Property>
+    </Properties>
+    <Appenders>
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{HH:mm:ss.SSS} [%t] %-5p %logger{36} - %msg%n"/>
+        </Console>
+        <!--fileName 的位置很难琢磨 //todo-->
+        <File name="FileLog" fileName="logfile.log" append="true">
+            <PatternLayout pattern="%d %t %-5p %c{2} - %m%n" />
+        </File>
+        <!--filePattern 表示存档文件命名规则-->
+        <RollingFile name="RollingFile" fileName="${log-path}/rollinglog.log" filePattern="${log-path}/%d{YYYYMMdd}.log">
+            <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss} [%t] %-5p %c{1}:%L - %msg%n" />
+            <Policies>
+                <SizeBasedTriggeringPolicy size="10 MB" />
+            </Policies>
+            <DefaultRolloverStrategy max="20" />
+        </RollingFile>
+        <RollingFile name="DailyRollingFile-info" fileName="${log-path}/dayily-info.log" filePattern="${log-path}/daily-info-%d{YYYYMMdd}.log">
+            <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss} [%t] %-5p %c{1}:%L - %msg%n" />
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="24" modulate="true" />
+            </Policies>
+        </RollingFile>
+        <RollingFile name="DailyRollingFile-error" fileName="${log-path}/dayily-error.log" filePattern="${log-path}/daily-error-%d{YYYYMMdd}.log">
+            <PatternLayout pattern="%d{YYYY-MM-dd HH:mm:ss} [%t] %-5p %c{1}:%L - %msg%n" />
+            <Policies>
+                <!--24 表示24小时还是24分钟，由什么决定 //TODO-->
+                <TimeBasedTriggeringPolicy interval="24" modulate="true" />
+            </Policies>
+        </RollingFile>
+    </Appenders>
+    <!--Performance will be improved if substitute RollingFile with RandomAccessFileAppender nextversion-->
+    <Loggers>
+        <!-- additivity 表示是否向父logger传递LogEvent -->
+        <logger name="mm.Foo" level="debug" additivity="false">
+            <appender-ref ref="RollingFile" level="info" />
+            <appender-ref ref="FileLog" level="error"/>
+        </logger>
+        <!--if the root logger is not configured, the default will be used-->
+        <Root level="error">
+            <appender-ref ref="Console"/>
+        </Root>
+        <!--没有相应名字的logger会使用Root-->
+    </Loggers>
+</Configuration>

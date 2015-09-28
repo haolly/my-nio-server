@@ -7,5 +7,18 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="file://$MODULE_DIR$/libs" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES>
+          <root url="jar://E:/libs/c3p0-0.9.5.1.bin/c3p0-0.9.5.1/src/c3p0-0.9.5.1-sources.jar!/" />
+          <root url="jar://E:/libs/c3p0-0.9.5.1.bin/c3p0-0.9.5.1/src/mchange-commons-java-0.2.10-sources.jar!/" />
+        </SOURCES>
+        <jarDirectory url="file://$MODULE_DIR$/libs" recursive="false" />
+      </library>
+    </orderEntry>
   </component>
 </module>
